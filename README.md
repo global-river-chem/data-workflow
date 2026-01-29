@@ -8,8 +8,8 @@ This work builds on the silica working group project originally developed under 
     - [lterwg-silica-data](https://github.com/lter/lterwg-silica-data) – original data repository
     - [lterwg-silica-spatial](https://github.com/lter/lterwg-silica-spatial) – original spatial data extraction repository
 
-# **Prior Workflow Steps:**  
+# Prior Workflow Steps: 
 ["Old" Workflow](https://docs.google.com/document/d/1e-qECyFWh7H1EO0n9foxtM36F55PLv11/edit)
 
-# **Links to data:**  
+# Links to data:
 [River Si Data Overview](https://docs.google.com/document/d/1e-qECyFWh7H1EO0n9foxtM36F55PLv11/edit)
