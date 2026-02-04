@@ -1,5 +1,6 @@
 # **Data Workflow**
 This repository contains a workflow covering data ingestion, QAQC, harmonization, WRTDS modeling, and spatial data extractions.  
+
 It is a **work in progress** and is actively being developed to make the workflow more streamlined, reproducible, and easier to maintain as data sources and methods evolve.
 
 ## **Project Lineage**
