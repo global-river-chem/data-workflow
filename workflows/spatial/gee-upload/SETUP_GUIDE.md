@@ -75,20 +75,26 @@ gsutil mb -l us-central1 gs://silica-synthesis-shapefiles
 
 ## 3. Uploading New Shapefiles
 
-### Prepare Files
+### Prepare Files (R Script)
 
-1. Place new shapefiles in a folder (each shapefile = .shp, .shx, .dbf, .prj files)
+This R script handles everything:
+1. Normalizes names (lowercase, underscores, no special chars)
+2. Reprojects to WGS84 (EPSG:4326) - required for GEE
+3. Zips each shapefile for upload
 
-2. **Terminal** - Normalize the names:
-```bash
-cd /path/to/new/shapefiles
-python3 ~/Documents/GitHub/data-workflow/workflows/utils/normalize_site_names.py
+**Terminal (run in R):**
+```r
+# Update paths in the script first, then:
+source("~/Documents/GitHub/data-workflow/workflows/utils/prepare_shapefiles_for_gee.R")
+results <- process_all_shapefiles(INPUT_DIR, OUTPUT_DIR)
 ```
 
-3. **Terminal** - Zip each shapefile (key for storage limits - free tier is 5GB):
+Or run from command line:
 ```bash
-python3 ~/Documents/GitHub/data-workflow/workflows/spatial/gee-upload/prepare_shapefiles.py
+Rscript ~/Documents/GitHub/data-workflow/workflows/utils/prepare_shapefiles_for_gee.R
 ```
+
+Output will be in `OUTPUT_DIR/zipped/` ready for GCS upload.
 
 ### Upload to GCS
 
