@@ -150,6 +150,138 @@ process_all_shapefiles <- function(input_dir, output_dir) {
   invisible(results)
 }
 
+# ---- GEE Upload Functions ----
+
+#' Check if CLI tools are installed
+check_cli_tools <- function() {
+  gsutil_ok <- system("which gsutil", ignore.stdout = TRUE, ignore.stderr = TRUE) == 0
+  ee_ok <- system("which earthengine", ignore.stdout = TRUE, ignore.stderr = TRUE) == 0
+
+  if (!gsutil_ok || !ee_ok) {
+    message("\n!! Missing CLI tools. One-time setup required:")
+    if (!gsutil_ok) {
+      message("   gsutil: Install Google Cloud SDK")
+      message("   https://cloud.google.com/sdk/docs/install")
+    }
+    if (!ee_ok) {
+      message("   earthengine: Run 'pip install earthengine-api'")
+    }
+    message("\nAfter installing, authenticate:")
+    message("   gcloud auth login")
+    message("   earthengine authenticate")
+    message("   earthengine set_project silica-synthesis")
+    return(FALSE)
+  }
+  return(TRUE)
+}
+
+#' Upload zipped shapefiles to Google Cloud Storage
+upload_to_gcs <- function(zip_dir, bucket = "gs://silica-synthesis-shapefiles") {
+  if (!check_cli_tools()) return(invisible(NULL))
+
+  zip_dir <- path.expand(zip_dir)
+  zip_files <- list.files(zip_dir, pattern = "\\.zip$", full.names = TRUE)
+
+  if (length(zip_files) == 0) {
+    message("No zip files found in ", zip_dir)
+    return(invisible(NULL))
+  }
+
+  message(sprintf("\nUploading %d files to %s...", length(zip_files), bucket))
+
+  cmd <- sprintf("gsutil -m cp %s/*.zip %s/", zip_dir, bucket)
+  result <- system(cmd)
+
+  if (result == 0) {
+    message("Upload to GCS complete!")
+  } else {
+    warning("GCS upload had issues. Check authentication.")
+  }
+
+  invisible(result == 0)
+}
+
+#' Ingest shapefiles from GCS to GEE
+ingest_to_gee <- function(zip_dir,
+                          bucket = "gs://silica-synthesis-shapefiles",
+                          asset_folder = "projects/silica-synthesis/assets/silica-watersheds") {
+  if (!check_cli_tools()) return(invisible(NULL))
+
+  zip_dir <- path.expand(zip_dir)
+  zip_files <- list.files(zip_dir, pattern = "\\.zip$", full.names = FALSE)
+
+  if (length(zip_files) == 0) {
+    message("No zip files found in ", zip_dir)
+    return(invisible(NULL))
+  }
+
+  message(sprintf("\nIngesting %d files to GEE...", length(zip_files)))
+
+  success <- 0
+  for (zf in zip_files) {
+    asset_name <- tools::file_path_sans_ext(zf)
+    gcs_path <- file.path(bucket, zf)
+    asset_path <- file.path(asset_folder, asset_name)
+
+    cmd <- sprintf("earthengine upload table --asset_id=%s %s", asset_path, gcs_path)
+    result <- system(cmd, ignore.stdout = TRUE, ignore.stderr = TRUE)
+
+    if (result == 0) success <- success + 1
+  }
+
+  message(sprintf("\nStarted %d/%d upload tasks", success, length(zip_files)))
+  message("Check progress at: https://code.earthengine.google.com/ (Tasks tab)")
+
+  invisible(success)
+}
+
+#' Complete workflow: process shapefiles and upload to GEE
+#'
+#' @param input_dir Folder containing raw shapefiles
+#' @param output_dir Folder for processed/zipped files (default: tempdir)
+#' @param upload Whether to upload to GEE after processing (default: TRUE)
+#'
+#' @examples
+#' # Process and upload new shapefiles
+#' upload_shapefiles_to_gee("~/Downloads/new-shapefiles")
+#'
+#' # Just process, don't upload yet
+#' upload_shapefiles_to_gee("~/Downloads/new-shapefiles", upload = FALSE)
+upload_shapefiles_to_gee <- function(input_dir,
+                                      output_dir = file.path(tempdir(), "gee-upload"),
+                                      upload = TRUE) {
+
+  # Step 1: Process shapefiles (normalize names, reproject, zip)
+  message("=== Step 1: Processing shapefiles ===\n")
+  results <- process_all_shapefiles(input_dir, output_dir)
+
+  if (!upload) {
+    message("\nProcessing complete. Zips ready in: ", file.path(output_dir, "zipped"))
+    message("To upload later, run:")
+    message(sprintf('  upload_to_gcs("%s/zipped")', output_dir))
+    message(sprintf('  ingest_to_gee("%s/zipped")', output_dir))
+    return(invisible(results))
+  }
+
+  # Step 2: Upload to GCS
+  message("\n=== Step 2: Uploading to Google Cloud Storage ===")
+  zip_dir <- file.path(output_dir, "zipped")
+  gcs_ok <- upload_to_gcs(zip_dir)
+
+  if (!isTRUE(gcs_ok)) {
+    message("\nGCS upload failed. Fix issues and run:")
+    message(sprintf('  upload_to_gcs("%s")', zip_dir))
+    return(invisible(results))
+  }
+
+  # Step 3: Ingest to GEE
+  message("\n=== Step 3: Ingesting to Google Earth Engine ===")
+  ingest_to_gee(zip_dir)
+
+  message("\n=== All done! ===")
+  invisible(results)
+}
+
 # ---- Execute ----
 if (!interactive()) {
   results <- process_all_shapefiles(INPUT_DIR, OUTPUT_DIR)
