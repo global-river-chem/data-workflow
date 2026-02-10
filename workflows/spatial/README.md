@@ -8,7 +8,7 @@
 
 ### 2026-02-04: Starting GEE migration
 
-Moving away from Aurora server + AppEEARS workflow to Google Earth Engine. Copying shapefiles to GEE Assets and HydroShare for backup.
+Moving away from AppEEARS workflow to Google Earth Engine. Copying shapefiles to GEE Assets and HydroShare for backup.
 
 **GEE Upload Status:**
 - 687 shapefiles prepared and zipped in `~/Downloads/silica-shapefiles/zipped-for-gee/`
@@ -27,7 +27,7 @@ Moving away from Aurora server + AppEEARS workflow to Google Earth Engine. Copyi
 - ColoradoAlpine (11 sites, <10 km²)
 - ARC Arctic (39 sites, <10 km²)
 
-#### Current Data Storage: Aurora Server
+#### Current Data Storage: NCEAS Server
 
 Path: `/home/shares/lter-si/si-watershed-extract/`
 
@@ -86,12 +86,12 @@ silica-watersheds_artisanal.shp + silica-watersheds_hydrosheds.shp → silica-wa
 - EAQ_Shapefile, EBC_Shapefile, Pumphouse_Shapefile, Rock_Shapefile
 - Rustlers_Shapefile, Lottis_Shapefile, Snodgrass_Shapefile, Trail_Shapefile
 
-#### Raster Data: Aurora vs GEE Equivalents
+#### Raster Data: AppEEARS vs GEE Equivalents
 
-| Variable | Aurora Source | GEE Equivalent | Notes |
+| Variable | AppEEARS Source | GEE Equivalent | Notes |
 |----------|---------------|----------------|-------|
 | Elevation | `raw-elevation/` (SRTM) | `USGS/SRTMGL1_003` | Same source, should match |
-| Land Cover | `raw-glcc-landcover-data/` (GLCC) | `MODIS/061/MCD12Q1` | **DIFFERENT** - Aurora uses GLCC, GEE has MODIS. May need to verify classification scheme |
+| Land Cover | `raw-glcc-landcover-data/` (GLCC) | `MODIS/061/MCD12Q1` | **DIFFERENT** - AppEEARS uses GLCC, GEE has MODIS. May need to verify classification scheme |
 | NPP | `raw-npp-v061/` (MODIS MOD17A3) | `MODIS/061/MOD17A3HGF` | Same product, v061 |
 | Evapotranspiration | `raw-evapo-modis16a2-v061/` | `MODIS/061/MOD16A2` | Same product, v061 |
 | Air Temperature | `raw-airtemp-monthly/` | `ECMWF/ERA5_LAND/MONTHLY_AGGR` | Switching to ERA5-Land for monthly analysis capability |

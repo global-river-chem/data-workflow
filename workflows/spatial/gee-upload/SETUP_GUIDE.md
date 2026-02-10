@@ -3,7 +3,6 @@
 Step-by-step guide for uploading watershed shapefiles to Google Earth Engine.
 
 **Current Account:** Personal (sidneyabush@gmail.com)
-**Future:** Consider creating a shared project account for institutional use.
 
 ---
 
@@ -112,22 +111,6 @@ gsutil rm gs://silica-synthesis-shapefiles/*.zip
 
 ---
 
-## Troubleshooting
-
-**"billing account disabled"**
-→ Link billing at https://console.cloud.google.com/billing
-
-**"project not found" in earthengine**
-→ Run `earthengine set_project silica-synthesis`
-
-**Projection errors during upload**
-→ Shapefile has wrong/missing CRS. See REPROJECTION_LOG.md for examples.
-
-**Auth expired**
-→ Re-run `gcloud auth login` and `earthengine authenticate`
-
----
-
 ## Project Structure
 
 ```
@@ -138,12 +121,4 @@ GEE Assets (projects/silica-synthesis/assets/)
 
 GCS Bucket (gs://silica-synthesis-shapefiles/)
 └── (temporary staging for uploads)
-```
-
----
-
-## R Dependencies
-
-```r
-install.packages(c("sf", "stringi", "zip"))
 ```
