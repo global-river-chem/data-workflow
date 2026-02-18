@@ -1,6 +1,6 @@
 # Spatial Workflow
 
-**Modernization Author:** Sidney Bush
+**Modernization:** Sidney Bush
 
 ---
 
@@ -8,12 +8,16 @@
 
 ### 2026-02-04: Starting GEE migration
 
-Moving away from AppEEARS workflow to Google Earth Engine. Copying shapefiles to GEE Assets and HydroShare for backup.
+Moving away from GlASS/AppEEARS workflow to Google Earth Engine. Copying shapefiles to GEE Assets and HydroShare for backup.
 
 **GEE Upload Status:**
 - 687 shapefiles prepared and zipped in `~/Downloads/silica-shapefiles/zipped-for-gee/`
 - Upload scripts in `gee-upload/` folder
 - Next: Configure GEE cloud project, then run batch upload
+
+**Supporting migration docs in `data-documentation` repo:**
+- `new-shapefiles-added-2025-10-01_to_2026-01-28.md` — new/updated shapefiles added before GEE migration
+- `site-name-tracking-harmonization.md` — stream names to track through harmonization
 
 **Missing Shapefiles (need to create/find):**
 - `lvws_basin` (ColoradoAlpine - Loch Vale)
@@ -86,28 +90,9 @@ silica-watersheds_artisanal.shp + silica-watersheds_hydrosheds.shp → silica-wa
 - EAQ_Shapefile, EBC_Shapefile, Pumphouse_Shapefile, Rock_Shapefile
 - Rustlers_Shapefile, Lottis_Shapefile, Snodgrass_Shapefile, Trail_Shapefile
 
-#### Raster Data: AppEEARS vs GEE Equivalents
+#### Data Documentation Location
 
-| Variable | AppEEARS Source | GEE Equivalent | Notes |
-|----------|---------------|----------------|-------|
-| Elevation | `raw-elevation/` (SRTM) | `USGS/SRTMGL1_003` | Same source, should match |
-| Land Cover | `raw-glcc-landcover-data/` (GLCC) | `MODIS/061/MCD12Q1` | **DIFFERENT** - AppEEARS uses GLCC, GEE has MODIS. May need to verify classification scheme |
-| NPP | `raw-npp-v061/` (MODIS MOD17A3) | `MODIS/061/MOD17A3HGF` | Same product, v061 |
-| Evapotranspiration | `raw-evapo-modis16a2-v061/` | `MODIS/061/MOD16A2` | Same product, v061 |
-| Air Temperature | `raw-airtemp-monthly/` | `ECMWF/ERA5_LAND/MONTHLY_AGGR` | Switching to ERA5-Land for monthly analysis capability |
-| Precipitation | `raw-gpcp-precip/` (GPCP) | `ECMWF/ERA5_LAND/MONTHLY_AGGR` | Switching to ERA5-Land for consistency (monthly analysis) |
-| Snow Fraction | `raw-snowfrac/` (MODIS MOD10A1) | `MODIS/061/MOD10A1` | Same product |
-| Greenup | `raw-greenup-v061/` (MODIS MCD12Q2) | `MODIS/061/MCD12Q2` | Same product, v061 |
-| Permafrost | `raw-permafrost/` | TBD | Need to identify GEE equivalent |
-| Soil | `raw-soil/` | `OpenLandMap/SOL/SOL_*` | **VERIFY** - check if same source |
-| Lithology | `raw-lithology-data/` (GLiM) | `projects/sat-io/open-datasets/GLiM` | Same source (community upload) |
-
-**To do:**
-- [ ] Verify air temperature source matches
-- [ ] Document precipitation product difference (GPCP vs IMERG) - may affect comparability
-- [ ] Verify soil data source
-- [ ] Find/upload permafrost equivalent
-- [ ] Test extraction results between old and new workflow for validation
+Dataset comparison and migration documentation is maintained in the `data-documentation` repository.
 
 ---
 
@@ -133,25 +118,9 @@ Scripts in this repository are described below:
 
 #### Ancillary Scripts
 
-- **appears-bbox-check.R** - Checks whether the site shapefiles fit inside of the manually-drawn [AppEEARS](https://appeears.earthdatacloud.nasa.gov/) bounding boxes. Used to be a sub-section of each `extract-...` script but it's easier to just centralize this check in a separate script.
+- **appears-bbox-check.R** - Checks whether site shapefiles fit inside legacy extraction bounding boxes used for the GlASS-aligned raster pulls.
 
-- **crop-drivers.R** - For the drivers downloaded from [AppEEARS](https://appeears.earthdatacloud.nasa.gov/), data are retrieved from manually-drawn  bounding boxes. These bounding boxes intentionally overlap each other somewhat so that no gaps exist between downloads but this does necessitate cropping those boxes to avoid "double counting" the pixels contained in two separate bounding boxes. This script does all of that cropping.
-
-    - AppEEARS data acquisition process is as follows:
-    - 1) Sign into AppEEARS portal (create account if you don't already have one)
-    - 2) Click "Extract" in top left of navbar at top of screen
-    - 3) Select "Area" in the resulting dropdown menu
-    - 4) Either start a new request of use an existing request if you want to use the bounding box drawn for a previous request
-    - 5A) Name your request informatively
-    - 5B) Draw bounding box / polygon for which you want data
-    - 5C) Select range of dates for which you want data
-    - 5D) Search for and add the data layers you want
-    - 5E) Select the output format you desire
-    - 5F) Select the coordinate reference system (CRS) for the output data
-    - 5G) Click "Submit"
-    - 6) Await email confirming 'download ready'
-    - 7) Follow instructions to download the parts of the data / QA of your request that you want
-    - NOTE: It is easy to exceed the data limitation of a single request either by (i) exceeding the spatial area allowed or (ii) including too many layers in the same request. It is better to make several smaller requests to avoid this issue.
+- **crop-drivers.R** - Crops overlapping legacy raster tiles so pixels are not double-counted when drivers are mosaicked for extraction.
 
 ## Related Repositories
 
