@@ -1,5 +1,5 @@
 ## ----------------------------------------------- ##
-# Pre-Process GlASS Data
+# Pre-Process ('Split') GlASS Data
 ## ----------------------------------------------- ##
 ## Purpose:
 # Later workflows work on individual rivers' data.
@@ -17,10 +17,18 @@ librarian::shelf(tidyverse)
 rm(list = ls()); gc()
 
 ## ---------------------------------- ##
-# Download Master Files ----
+# Load 'Master' Chemistry Data ----
 ## ---------------------------------- ##
 
+# Read in the old 'master' chem data
+chem_v01 <- read.csv(file = file.path("data", "chemistry_preprocess-not-done", "20221030_masterdata_disc_V2.csv"))
 
+# Check structure
+dplyr::glimpse(chem_v01)
+ 
+## ---------------------------------- ##
+# Split By River & Export ----
+## ---------------------------------- ##
 
 
 
