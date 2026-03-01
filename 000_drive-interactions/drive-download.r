@@ -33,7 +33,7 @@ q_url <- googledrive::as_id("https://drive.google.com/drive/u/1/folders/1mw0rYbq
 
 # Manually identify files that need pre-processing
 ## Assumes (hopes) fewer in this category
-bad_files <- c("20221030_masterdata_disc_V2.csv")
+bad_files <- c("20221030_masterdata_chem_V2.csv")
 
 # Identify all chemistry files
 chem_files <- googledrive::drive_ls(path = chem_url, pattern = ".csv")
