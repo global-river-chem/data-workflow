@@ -8,9 +8,6 @@
 
 # Get set up
 source(file = file.path("-setup.r"))
-## Including sub-folders only (or mostly only) needed by this script
-dir.create(file.path("data", "preprocess-not-done"), showWarnings = F)
-dir.create(file.path("data", "preprocess-done"), showWarnings = F)
 
 # Load libraries
 ## install.packages("librarian")
