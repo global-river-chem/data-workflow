@@ -11,14 +11,9 @@
 # Make relevant top-level folder
 dir.create(file.path("data"), showWarnings = F)
 
-# Make subfolders folders that need chemistry and discharge variants
-purrr::walk(.x = paste0(c("chemistry_", "discharge_"), 
-    sort(rep(c("preprocess-not-done", "preprocess-done", 
-      "raw", "standardized"), times = 2))),
-  .f = ~ dir.create(path = file.path("data", .x),
-    showWarnings = F))
-
-# Make other needed subfolders
+# Make sub-folders needed by many/most other scripts
+dir.create(file.path("data", "raw"), showWarnings = F)
+dir.create(file.path("data", "standardized"), showWarnings = F)
 dir.create(file.path("data", "wrtds"), showWarnings = F)
 dir.create(file.path("data", "spatial"), showWarnings = F)
 
