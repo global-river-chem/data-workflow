@@ -8,6 +8,9 @@
 
 # Get set up
 source(file = file.path("-setup.r"))
+## Including sub-folders only (or mostly only) needed by this script
+dir.create(file.path("data", "preprocess-not-done"), showWarnings = F)
+dir.create(file.path("data", "preprocess-done"), showWarnings = F)
 
 # Load libraries
 ## install.packages("librarian")
@@ -36,6 +39,16 @@ googledrive::drive_download(file = chem_master$id, overwrite = T,
 googledrive::drive_download(file = q_master$id, overwrite = T,
   path = file.path("data", "discharge_preprocess-not-done", q_master$name))
 
+# Identify reference table
+(ref.table <- googledrive::drive_ls(path = googledrive::as_id("https://drive.google.com/drive/u/1/folders/0AIPkWhVuXjqFUk9PVA")) %>% 
+  dplyr::filter(name == "Site_Reference_Table"))
+
+# Download it locally
+googledrive::drive_download(file = ref.table$id, overwrite = T,
+  path = file.path("data", "discharge_preprocess-not-done", "site-ref-table.csv"))
+
+
+
 ## ---------------------------------- ##
 # Load 'Master' Chemistry Data ----
 ## ---------------------------------- ##
@@ -45,6 +58,24 @@ chem_v01 <- read.csv(file = file.path("data", "chemistry_preprocess-not-done", c
 
 # Check structure
 dplyr::glimpse(chem_v01)
+
+## ---------------------------------- ##
+# Load 'Master' Discharge Data ----
+## ---------------------------------- ##
+
+# Read in the old 'master' chem data
+disc_v01 <- read.csv(file = file.path("data", "discharge_preprocess-not-done", q_master$name))
+
+# Check structure
+dplyr::glimpse(disc_v01)
+
+## ---------------------------------- ##
+# Check River Overlap ----
+## ---------------------------------- ##
+
+intersect(x = chem_v01$Stream_name, y = disc_v01$Stream_Name)
+
+
 
 ## ---------------------------------- ##
 # Preliminary Wrangling ----
