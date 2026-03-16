@@ -167,4 +167,139 @@ chem_v03 %>%
   dplyr::filter(is.na(Discharge_File_Name) | nchar(Discharge_File_Name) == 0) %>% 
   dplyr::pull(Stream_Name) %>% unique()
 
+## ---------------------------------- ##
+# Separate Each River ----
+## ---------------------------------- ##
+# We want one data file per river
+## Including both chemistry and discharge where both are available
+
+# Get all chem and discharge river names separate
+chem_names <- chem_v03 %>% 
+  dplyr::select(LTER, Stream_Name, Discharge_File_Name) %>% 
+  dplyr::distinct()
+disc_names <- disc_v03 %>% 
+  dplyr::select(LTER, Stream_Name, Discharge_File_Name) %>% 
+  dplyr::distinct()
+
+# List for storing inventory outputs
+inventory_out <- list()
+
+# Loop across rows in the reference table
+for(k in 1:nrow(ref_v01)){
+  ## k <- 2
+
+  # Grab that row of the ref table
+  focal_ref <- ref_v01[k, ]
+
+  # Progress message
+  message("Processing river ", k, ": '", focal_ref$Stream_Name, "'")
+
+  # Assemble part of the inventory info
+  focal_invent <- data.frame(
+    "research_network" = focal_ref$LTER,
+    "country" = NA,
+    "state" = NA,
+    "river_name" = focal_ref$Stream_Name, 
+    "latitude_dd" = focal_ref$Latitude,
+    "longitude_dd" = focal_ref$Longitude,
+    "drainage.area_km2" = focal_ref$drainSqKm)
+
+  # If it's found in both data files...
+  if(focal_ref$Stream_Name %in% chem_names$Stream_Name & 
+      focal_ref$Discharge_File_Name %in% disc_names$Discharge_File_Name){
+    
+    # Rip it out of both
+    focal_chem <- dplyr::filter(chem_v03, Stream_Name == focal_ref$Stream_Name)
+    focal_disc <- dplyr::filter(disc_v03, Discharge_File_Name == focal_ref$Discharge_File_Name)
+
+    # Do a quick fix if needed for discharge units
+    if(focal_ref$Units != unique(focal_disc$units)
+        & !is.na(focal_ref$Units) & nchar(focal_ref$Units) != 0){ focal_disc$units <- focal_ref$Units }
+
+    # Join both
+    focal_out <- dplyr::bind_rows(focal_chem, focal_disc)
+
+    # Assemble a nice file name
+    focal_name <- paste0("master2026_river-", k, "_", focal_ref$LTER, "_", focal_ref$Stream_Name, ".csv")
+
+    # Export this locally
+    write.csv(x = focal_out, na = "", row.names = F,
+      file = file.path("data", "preprocess-done", focal_name))
+
+    # If it only has chemistry...
+  } else if(focal_ref$Stream_Name %in% chem_names$Stream_Name & 
+      !focal_ref$Discharge_File_Name %in% disc_names$SDischarge_File_Name) {
+
+    # Rip it out of chemistry
+    focal_chem <- dplyr::filter(chem_v03, Stream_Name == focal_ref$Stream_Name)
+    focal_disc <- NULL
+
+    # Join both
+    focal_out <- dplyr::bind_rows(focal_chem, focal_disc)
+
+    # Assemble a nice file name
+    focal_name <- paste0("master2026_river-", k, "_chem-only_", focal_ref$LTER, "_", focal_ref$Stream_Name, ".csv")
+
+    # Export this locally
+    write.csv(x = focal_out, na = "", row.names = F,
+      file = file.path("data", "preprocess-done", focal_name))
+        
+    # If it only has discharge...
+  } else if(!focal_ref$Stream_Name %in% chem_names$Stream_Name & 
+      focal_ref$Discharge_File_Name %in% disc_names$SDischarge_File_Name) {
+
+    # Rip it out of discharge
+    focal_chem <- NULL
+    focal_disc <- dplyr::filter(disc_v03, Discharge_File_Name == focal_ref$Discharge_File_Name)
+
+    # Do a quick fix if needed for discharge units
+    if(focal_ref$Units != unique(focal_disc$units)
+        & !is.na(focal_ref$Units) & nchar(focal_ref$Units) != 0){ focal_disc$units <- focal_ref$Units }
+    
+    # Join both
+    focal_out <- dplyr::bind_rows(focal_chem, focal_disc)
+
+    # Assemble a nice file name
+    focal_name <- paste0("master2026_river-", k, "_disc-only_", focal_ref$LTER, "_", focal_ref$Stream_Name, ".csv")
+
+    # Export this locally
+    write.csv(x = focal_out, na = "", row.names = F,
+      file = file.path("data", "preprocess-done", focal_name)) 
+    
+  } # Close last conditional
+
+  # Finish prepping inventory info and add to list
+  if(is.null(focal_out) != TRUE){
+    inventory_out[[paste0("ref-table-", k)]] <- focal_invent %>% 
+      # "raw" file name (raw from the perspective of the 'actual' workflow that starts after this script)
+      dplyr::mutate(raw_filename = focal_name, .before = dplyr::everything()) %>% 
+      # Does the data have chemistry and discharge or just one?
+      dplyr::mutate(incl_discharge = ifelse("chem_only" %in% focal_name != T, yes = "yes", no = "no"),
+        incl_chemicals = ifelse("disc_only" %in% focal_name != T, yes = "yes", no = "no"),
+        .after = river_name) %>% 
+      # Which chemicals were included?
+      dplyr::mutate(measured_chemicals = ifelse(incl_chemicals != "no", 
+        yes = paste0(sort(setdiff(focal_out$variable, "discharge")), collapse = "; "),
+        no = NA), .after = incl_chemicals) %>% 
+      # What are the first and last years?
+      dplyr::mutate(first_year = min(lubridate::year(as.Date(focal_out$date)), na.rm = T),
+        last_year = max(lubridate::year(as.Date(focal_out$date)), na.rm = T),
+        .after = measured_chemicals)
+  }
+
+  # Re-set the 'focal out' object
+  focal_out <- NULL
+  
+} # Close loop
+
+# Unlist the data inventory
+ref_inventory <- purrr::list_rbind(x = inventory_out)
+
+# Check that out
+dplyr::glimpse(ref_inventory)
+
+# Export locally
+write.csv(x = ref_inventory, na = '', row.names = F,
+  file = file.path("data", "master2026_ref-table-inventory.csv"))
+
 # End ----
