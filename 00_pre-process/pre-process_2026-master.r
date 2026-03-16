@@ -72,38 +72,6 @@ ref_v02 <- ref_v01 %>%
 dplyr::glimpse(ref_v02)
 
 ## ---------------------------------- ##
-# Prepare 'Master' Chemistry Data ----
-## ---------------------------------- ##
-
-# Read in the old 'master' chem data
-chem_v01 <- read.csv(file = file.path("data", "preprocess-not-done", "20260105_masterdata_chem.csv"))
-
-# Check structure
-dplyr::glimpse(chem_v01)
-
-# How many rivers are found in both the chem data and the ref table?
-length(intersect(unique(ref_v02$Stream_Name), unique(chem_v01$Stream_Name)))
-
-# Which rivers are found in only one but not the other?
-supportR::diff_check(old = unique(ref_v02$Stream_Name), new = unique(chem_v01$Stream_Name))
-
-# Do needed wrangling
-chem_v02 <- chem_v01 %>% 
-  # Fix any malformed stream names that aren't found in both the chem data and the ref table
-  dplyr::mutate(Stream_Name = dplyr::case_when(
-    TRUE ~ Stream_Name))
-
-# Did that fix some issues?
-length(intersect(unique(ref_v02$Stream_Name), unique(chem_v02$Stream_Name)))
-
-# Check structure
-dplyr::glimpse(chem_v02)
-
-# Join the ref table
-chem_v03 <- chem_v02 %>% 
-  dplyr::left_join(y = ref_v02, by = c("LTER", "Stream_Name"))
-
-## ---------------------------------- ##
 # Prepare 'Master' Discharge Data ----
 ## ---------------------------------- ##
 
@@ -115,6 +83,8 @@ dplyr::glimpse(disc_v01)
 
 # Do needed wrangling
 disc_v02 <- disc_v01 %>% 
+  # Remove misleadlingly named value
+  dplyr::select(-Stream_Name) %>% 
   # Make all missing values true NAs
   dplyr::mutate(dplyr::across(.cols = dplyr::everything(),
     .fns = ~ ifelse(nchar(.) == 0, yes = NA, no = .))) %>%
@@ -127,11 +97,74 @@ disc_v02 <- disc_v01 %>%
       "MD_407202_Q", "MD_409025_Q", "MD_425007_Q") ~ "MD",
     is.na(LTER) & Discharge_File_Name %in% c("Site12_Q", "Site15_Q", "Site20_Q") ~ "Krycklan",
     is.na(LTER) & Discharge_File_Name == "UpperJaramillo_Q" ~ "USGS",
-    TRUE ~ LTER))
+    TRUE ~ LTER)) %>% 
+  # Standardize column names/order with chemistry data
+  dplyr::rename(date = Date,
+    value = Qcms) %>%
+  dplyr::relocate(date, value, 
+    .after = dplyr::everything()) %>% 
+  dplyr::mutate(variable = "discharge",
+    units = "cms",
+    .before = value)
 
-disc_v02 %>% filter(is.na(LTER)) %>% pull(Discharge_File_Name) %>% unique()
+# How does that overlap with the ref table values?
+length(intersect(unique(ref_v02$Discharge_File_Name), unique(disc_v02$Discharge_File_Name)))
+supportR::diff_check(old = unique(ref_v02$Discharge_File_Name), new = unique(disc_v02$Discharge_File_Name))
 
 # Check structure
 dplyr::glimpse(disc_v02)
+
+# Join the ref table
+disc_v03 <- disc_v02 %>% 
+  dplyr::mutate(Stream_Name = ref_v02$Stream_Name[match(.$Discharge_File_Name, ref_v02$Discharge_File_Name)])
+
+# Check structure
+dplyr::glimpse(disc_v03)
+
+# What discharge data still lacks the more generic 'Stream_Name'?
+## Check the ref table and resolve as needed
+disc_v03 %>% 
+  dplyr::filter(is.na(Stream_Name) | nchar(Stream_Name) == 0) %>% 
+  dplyr::pull(Discharge_File_Name) %>% unique()
+
+## ---------------------------------- ##
+# Prepare 'Master' Chemistry Data ----
+## ---------------------------------- ##
+
+# Read in the old 'master' chem data
+chem_v01 <- read.csv(file = file.path("data", "preprocess-not-done", "20260105_masterdata_chem.csv"))
+
+# Check structure
+dplyr::glimpse(chem_v01)
+
+# Do needed wrangling
+chem_v02 <- chem_v01 %>% 
+  # Make all missing values true NAs
+  dplyr::mutate(dplyr::across(.cols = dplyr::everything(),
+    .fns = ~ ifelse(nchar(.) == 0, yes = NA, no = .))) %>% 
+  # Fix any malformed stream names that aren't found in both the chem data and the ref table
+  dplyr::mutate(Stream_Name = dplyr::case_when(
+    TRUE ~ Stream_Name))
+
+# Did that fix some issues?
+length(intersect(unique(ref_v02$Stream_Name), unique(chem_v02$Stream_Name)))
+
+# Check structure
+dplyr::glimpse(chem_v02)
+
+# Join the ref table
+chem_v03 <- chem_v02 %>% 
+  dplyr::mutate(Discharge_File_Name = ref_v02$Discharge_File_Name[match(.$Stream_Name, ref_v02$Stream_Name)])
+
+# Check structure
+dplyr::glimpse(chem_v03)
+
+# What chemistry data still lacks the more specific 'Discharge_File_Name'?
+## Check the ref table and resolve as needed
+chem_v03 %>% 
+  dplyr::filter(Stream_Name %in% dplyr::filter(.data = ref_v02, !is.na(Discharge_File_Name) & 
+    nchar(Discharge_File_Name) != 0)$Stream_Name) %>% 
+  dplyr::filter(is.na(Discharge_File_Name) | nchar(Discharge_File_Name) == 0) %>% 
+  dplyr::pull(Stream_Name) %>% unique()
 
 # End ----
