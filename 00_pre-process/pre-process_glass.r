@@ -11,17 +11,37 @@ source(file = file.path("-setup.r"))
 
 # Load libraries
 ## install.packages("librarian")
-librarian::shelf(tidyverse)
+librarian::shelf(tidyverse, googledrive)
 
 # Clear environment + collect garbage
 rm(list = ls()); gc()
+
+## ---------------------------------- ##
+# Download 'Master' Data ----
+## ---------------------------------- ##
+
+# Identify master chemistry file
+(chem_master <- googledrive::drive_ls(path = googledrive::as_id("https://drive.google.com/drive/u/1/folders/1dTENIB5W2ClgW0z-8NbjqARiaGO2_A7W")) %>% 
+  dplyr::filter(name == "20260105_masterdata_chem.csv"))
+
+# Download it locally
+googledrive::drive_download(file = chem_master$id, overwrite = T,
+  path = file.path("data", "chemistry_preprocess-not-done", chem_master$name))
+
+# Identify master discharge file
+(q_master <- googledrive::drive_ls(path = googledrive::as_id("https://drive.google.com/drive/u/1/folders/1hbkUsTdo4WAEUnlPReOUuXdeeXm92mg-")) %>% 
+  dplyr::filter(name == "20260106_masterdata_discharge.csv"))
+
+# Download it locally
+googledrive::drive_download(file = q_master$id, overwrite = T,
+  path = file.path("data", "discharge_preprocess-not-done", q_master$name))
 
 ## ---------------------------------- ##
 # Load 'Master' Chemistry Data ----
 ## ---------------------------------- ##
 
 # Read in the old 'master' chem data
-chem_v01 <- read.csv(file = file.path("data", "chemistry_preprocess-not-done", "20221030_masterdata_chem_V2.csv"))
+chem_v01 <- read.csv(file = file.path("data", "chemistry_preprocess-not-done", chem_master$name))
 
 # Check structure
 dplyr::glimpse(chem_v01)
