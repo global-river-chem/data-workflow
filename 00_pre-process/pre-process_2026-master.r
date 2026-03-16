@@ -168,7 +168,7 @@ chem_v03 %>%
   dplyr::pull(Stream_Name) %>% unique()
 
 ## ---------------------------------- ##
-# Separate Each River ----
+# Separate Each River in Ref Table ----
 ## ---------------------------------- ##
 # We want one data file per river
 ## Including both chemistry and discharge where both are available
@@ -301,5 +301,76 @@ dplyr::glimpse(ref_inventory)
 # Export locally
 write.csv(x = ref_inventory, na = '', row.names = F,
   file = file.path("data", "master2026_ref-table-inventory.csv"))
+
+## ---------------------------------- ##
+# Separate Discharge Rivers NOT in Ref Table ----
+## ---------------------------------- ##
+
+# Remove all rivers in the ref table from the discharge data
+disc_v04 <- disc_v03 %>% 
+  dplyr::filter(!is.na(value)) %>% 
+  dplyr::filter(Discharge_File_Name %in% ref_v01$Discharge_File_Name != T)
+
+# Check structure
+dplyr::glimpse(disc_v04)
+
+## No such rivers,  skipping
+
+## ---------------------------------- ##
+# Separate Chemistry Rivers NOT in Ref Table ----
+## ---------------------------------- ##
+
+# Remove all rivers in the ref table from the discharge data
+chem_v04 <- chem_v03 %>% 
+  dplyr::filter(!is.na(value)) %>% 
+  dplyr::filter(Stream_Name %in% ref_v01$Stream_Name != T)
+
+# Check structure
+dplyr::glimpse(chem_v04)
+
+# Make a list for storing inventory info
+inventory_out <- list()
+
+# Loop across these
+for(chem_riv in sort(unique(chem_v04$Stream_Name))){
+  # chem_riv <- "West Lake Survey 08"
+
+  # Processing message
+  message("Working on river: '", chem_riv, "'")
+
+  # Subset to that data
+  focal_chem <- dplyr::filter(chem_v04, Stream_Name == chem_riv)
+
+  # Assemble a nice file name
+  focal_name <- paste0("master2026_chemistry-river_", gsub("\\\\|/", "-", x = chem_riv), ".csv")
+
+  # Export this locally
+  write.csv(x = focal_chem, na = "", row.names = F,
+    file = file.path("data", "preprocess-done", focal_name)) 
+
+  # Assemble inventory 'slice' and add to list
+  inventory_out[[chem_riv]] <- data.frame(
+    "raw_filename" = focal_name,
+    "research_network" = unique(focal_chem$LTER),
+    "country" = NA,
+    "state" = NA,
+    "river_name" = chem_riv, 
+    "incl_discharge" = "no",
+    "include_chemistry" = "yes",
+    "measured_chemicals" = paste0(sort(unique(focal_chem$variable)), collapse = "; "),
+    "first_year" = min(lubridate::year(as.Date(focal_out$date)), na.rm = T),
+    "last_year" = max(lubridate::year(as.Date(focal_out$date)), na.rm = T))
+
+}
+
+# Unlist the data inventory
+chem_inventory <- purrr::list_rbind(x = inventory_out)
+
+# Check that out
+dplyr::glimpse(chem_inventory)
+
+# Export locally
+write.csv(x = chem_inventory, na = '', row.names = F,
+  file = file.path("data", "master2026_chemistry-inventory.csv"))
 
 # End ----
