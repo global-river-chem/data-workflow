@@ -384,4 +384,50 @@ dplyr::glimpse(chem_inventory)
 write.csv(x = chem_inventory, na = '', row.names = F,
   file = file.path("data", "master2026_chemistry-inventory.csv"))
 
+## ---------------------------------- ##
+# Identify Chemical Start/Ends ----
+## ---------------------------------- ##
+
+# Clear environment to free up memory
+rm(list = ls()); gc()
+
+# Identify all files we just wrote out
+done_files <- dir(path = file.path("data", "preprocess-done"))
+
+# List for outputs
+chem_list <- list()
+
+# Loop across these
+for(focal_file in done_files){
+  # focal_file <- "master2026_river-4_Amazon_RioJutai.csv"
+
+  # Processing message
+  message("Working on file ", focal_file)
+
+  # Read in that file
+  focal_df <- read.csv(file = file.path("data", "preprocess-done", focal_file))
+
+  # Extract needed info and add to the list
+  chem_list[[focal_file]] <- focal_df %>% 
+    # Identify first/last year by chemical
+    dplyr::group_by(variable) %>% 
+    dplyr::summarize(
+      first_year = min(lubridate::year(as.Date(focal_df$date)), na.rm = T),
+      last_year = max(lubridate::year(as.Date(focal_df$date)), na.rm = T),
+      .groups = "drop") %>% 
+    # Also add raw file name
+    dplyr::mutate(raw_filename = focal_file,
+      .before = dplyr::everything())
+}
+
+# Unlist that list
+chem_spans <- purrr::list_rbind(x = chem_list)
+
+# Check that out
+dplyr::glimpse(chem_spans)
+
+# Export locally
+write.csv(x = chem_spans, na = '', row.names = F,
+  file = file.path("data", "master2026_chemistry-spans.csv"))
+
 # End ----
