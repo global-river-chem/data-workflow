@@ -281,8 +281,10 @@ for(k in 1:nrow(ref_v01)){
       # "raw" file name (raw from the perspective of the 'actual' workflow that starts after this script)
       dplyr::mutate(raw_filename = focal_name, .before = dplyr::everything()) %>% 
       # Does the data have chemistry and discharge or just one?
-      dplyr::mutate(incl_discharge = ifelse("chem-only" %in% focal_name != T, yes = "yes", no = "no"),
-        incl_chemicals = ifelse("disc-only" %in% focal_name != T, yes = "yes", no = "no"),
+      dplyr::mutate(incl_discharge = ifelse("discharge" %in% unique(focal_out$variable), 
+          yes = "yes", no = "no"),
+        incl_chemicals = ifelse(length(unique(focal_out$variable)) > 1, 
+          yes = "yes", no = "no"),
         .after = river_name) %>% 
       # Which chemicals were included?
       dplyr::mutate(measured_chemicals = ifelse(incl_chemicals != "no", 
