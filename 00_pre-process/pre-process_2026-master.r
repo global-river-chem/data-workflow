@@ -221,7 +221,9 @@ for(k in 1:nrow(ref_v01)){
     focal_out <- dplyr::bind_rows(focal_chem, focal_disc)
 
     # Assemble a nice file name
-    focal_name <- paste0("master2026_river-", k, "_", focal_ref$LTER, "_", focal_ref$Stream_Name, ".csv")
+    focal_name <- paste0("master2026_river-", k, "_", focal_ref$LTER, "_", 
+      stringr::str_sub(string = gsub(pattern = " |-|_|/|\\\\", replacement = "", x = focal_ref$Stream_Name), 
+      start = 1, end = 23), ".csv")
 
     # Export this locally
     write.csv(x = focal_out, na = "", row.names = F,
@@ -239,7 +241,9 @@ for(k in 1:nrow(ref_v01)){
     focal_out <- dplyr::bind_rows(focal_chem, focal_disc)
 
     # Assemble a nice file name
-    focal_name <- paste0("master2026_river-", k, "_chem-only_", focal_ref$LTER, "_", focal_ref$Stream_Name, ".csv")
+    focal_name <- paste0("master2026_river-", k, "_chem-only_", focal_ref$LTER, "_", 
+      stringr::str_sub(string = gsub(pattern = " |-|_|/|\\\\", replacement = "", x = focal_ref$Stream_Name), 
+      start = 1, end = 23), ".csv")
 
     # Export this locally
     write.csv(x = focal_out, na = "", row.names = F,
@@ -261,7 +265,9 @@ for(k in 1:nrow(ref_v01)){
     focal_out <- dplyr::bind_rows(focal_chem, focal_disc)
 
     # Assemble a nice file name
-    focal_name <- paste0("master2026_river-", k, "_disc-only_", focal_ref$LTER, "_", focal_ref$Stream_Name, ".csv")
+    focal_name <- paste0("master2026_river-", k, "_disc-only_", focal_ref$LTER, "_", 
+      stringr::str_sub(string = gsub(pattern = " |-|_|/|\\\\", replacement = "", x = focal_ref$Stream_Name), 
+      start = 1, end = 23), ".csv")
 
     # Export this locally
     write.csv(x = focal_out, na = "", row.names = F,
