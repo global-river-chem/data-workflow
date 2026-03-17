@@ -247,7 +247,7 @@ for(k in 1:nrow(ref_v01)){
         
     # If it only has discharge...
   } else if(!focal_ref$Stream_Name %in% chem_names$Stream_Name & 
-      focal_ref$Discharge_File_Name %in% disc_names$SDischarge_File_Name) {
+      focal_ref$Discharge_File_Name %in% disc_names$Discharge_File_Name) {
 
     # Rip it out of discharge
     focal_chem <- NULL
