@@ -8,6 +8,7 @@
 
 # Get set up
 source(file = file.path("-setup.r"))
+source(file = file.path("00_pre-process", "-pre-process_setup.r"))
 
 # Load libraries
 ## install.packages("librarian")
