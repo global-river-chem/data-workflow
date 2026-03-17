@@ -339,17 +339,21 @@ dplyr::glimpse(chem_v04)
 inventory_out <- list()
 
 # Loop across these
-for(chem_riv in sort(unique(chem_v04$Stream_Name))){
-  # chem_riv <- "West Lake Survey 08"
+for(chem_k in 1:length(unique(chem_v04$Stream_Name))){
+  # chem_k <- 1
+
+  # Identify which river this is
+  chem_riv <- unique(chem_v04$Stream_Name)[chem_k]
 
   # Processing message
-  message("Working on river: '", chem_riv, "'")
+  message("Working on river ", chem_k, ": '", chem_riv, "'")
 
   # Subset to that data
   focal_chem <- dplyr::filter(chem_v04, Stream_Name == chem_riv)
 
   # Assemble a nice file name
-  focal_name <- paste0("master2026_chemistry-river_", gsub("\\\\|/", "-", x = chem_riv), ".csv")
+  focal_name <- paste0("master2026_chemistry-river-", chem_k, "_", 
+    gsub(" |-|_|/|\\\\", "-", x = chem_riv), ".csv")
 
   # Export this locally
   write.csv(x = focal_chem, na = "", row.names = F,
@@ -365,8 +369,8 @@ for(chem_riv in sort(unique(chem_v04$Stream_Name))){
     "incl_discharge" = "no",
     "include_chemistry" = "yes",
     "measured_chemicals" = paste0(sort(unique(focal_chem$variable)), collapse = "; "),
-    "first_year" = min(lubridate::year(as.Date(focal_out$date)), na.rm = T),
-    "last_year" = max(lubridate::year(as.Date(focal_out$date)), na.rm = T))
+    "first_year" = min(lubridate::year(as.Date(focal_chem$date)), na.rm = T),
+    "last_year" = max(lubridate::year(as.Date(focal_chem$date)), na.rm = T))
 
 }
 
