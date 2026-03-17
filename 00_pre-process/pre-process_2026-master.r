@@ -24,33 +24,29 @@ rm(list = ls()); gc()
 # Do you need to re-download?
 redownload <- FALSE
 
-# If redownloading is desired...
-if(redownload == T){
+# Identify master chemistry file
+(chem_master <- googledrive::drive_ls(path = googledrive::as_id("https://drive.google.com/drive/u/1/folders/1dTENIB5W2ClgW0z-8NbjqARiaGO2_A7W")) %>% 
+  dplyr::filter(name == "20260105_masterdata_chem.csv"))
 
-  # Identify master chemistry file
-  (chem_master <- googledrive::drive_ls(path = googledrive::as_id("https://drive.google.com/drive/u/1/folders/1dTENIB5W2ClgW0z-8NbjqARiaGO2_A7W")) %>% 
-    dplyr::filter(name == "20260105_masterdata_chem.csv"))
+# Download it locally
+googledrive::drive_download(file = chem_master$id, overwrite = redownload,
+  path = file.path("data", "preprocess-not-done", chem_master$name))
 
-  # Download it locally
-  googledrive::drive_download(file = chem_master$id, overwrite = T,
-    path = file.path("data", "preprocess-not-done", chem_master$name))
+# Identify master discharge file
+(q_master <- googledrive::drive_ls(path = googledrive::as_id("https://drive.google.com/drive/u/1/folders/1hbkUsTdo4WAEUnlPReOUuXdeeXm92mg-")) %>% 
+  dplyr::filter(name == "20260106_masterdata_discharge.csv"))
 
-  # Identify master discharge file
-  (q_master <- googledrive::drive_ls(path = googledrive::as_id("https://drive.google.com/drive/u/1/folders/1hbkUsTdo4WAEUnlPReOUuXdeeXm92mg-")) %>% 
-    dplyr::filter(name == "20260106_masterdata_discharge.csv"))
+# Download it locally
+googledrive::drive_download(file = q_master$id, overwrite = redownload,
+  path = file.path("data", "preprocess-not-done", q_master$name))
 
-  # Download it locally
-  googledrive::drive_download(file = q_master$id, overwrite = T,
-    path = file.path("data", "preprocess-not-done", q_master$name))
+# Identify reference table
+(ref.table <- googledrive::drive_ls(path = googledrive::as_id("https://drive.google.com/drive/u/1/folders/0AIPkWhVuXjqFUk9PVA")) %>% 
+  dplyr::filter(name == "Site_Reference_Table"))
 
-  # Identify reference table
-  (ref.table <- googledrive::drive_ls(path = googledrive::as_id("https://drive.google.com/drive/u/1/folders/0AIPkWhVuXjqFUk9PVA")) %>% 
-    dplyr::filter(name == "Site_Reference_Table"))
-
-  # Download it locally
-  googledrive::drive_download(file = ref.table$id, overwrite = T,
+# Download it locally
+googledrive::drive_download(file = ref.table$id, overwrite = redownload,
   path = file.path("data", "preprocess-not-done", "2026-master_site-ref-table.csv"))
-}
 
 ## ---------------------------------- ##
 # Prepare Reference Table ----
