@@ -38,13 +38,8 @@ dplyr::glimpse(invent_v01)
 ## ---------------------------------- ##
 
 # Identify data in reference table not already in raw data
-missing_local <- invent_v01 %>% 
-  dplyr::filter(raw_filename %in% dir(file.path("data", "00_raw")))
-
-# Check that worked
-sort(unique(missing_local$raw_filename))
-dplyr::glimpse(missing_local)
-
+supportR::diff_check(old = unique(invent_v01$raw_filename),
+  new = dir(file.path("data", "00_raw")))
 
 
 
