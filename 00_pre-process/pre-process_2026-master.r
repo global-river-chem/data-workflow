@@ -12,7 +12,7 @@ source(file = file.path("00_pre-process", "-pre-process_setup.r"))
 
 # Load libraries
 ## install.packages("librarian")
-librarian::shelf(tidyverse, googledrive)
+librarian::shelf(tidyverse, googledrive, supportR)
 
 # Clear environment + collect garbage
 rm(list = ls()); gc()
@@ -436,12 +436,34 @@ write.csv(x = chem_spans, na = '', row.names = F,
 # Upload to Drive ----
 ## ---------------------------------- ##
 
+# Clear environment
+rm(list = ls()); gc()
+
 # Identify local files
 (master_files <- dir(path = file.path("data", "preprocess-done"), pattern = "master2026_"))
 
-# Upload them all to the relevant Drive folder
-purrr::walk(.x = master_files,
-  .f = ~ googledrive::drive_upload(media = file.path("data", "preprocess-done", .x), overwrite = TRUE,
-    path = googledrive::as_id("https://drive.google.com/drive/u/0/folders/1HvMPjH2WhKopEzQqVEmv2f7xb_PVMyHB")))
+# Split into thirds
+## Drive can only support 750 files / folder
+master_p1 <- master_files[1:527]
+master_p2 <- master_files[528:1055]
+master_p3 <- master_files[1056:1580]
+
+# Make sure nothing is lost
+supportR::diff_check(old = master_files, new = c(master_p1, master_p2, master_p3))
+
+# Grab links to respective Drive folders
+drive_p1 <- googledrive::as_id("https://drive.google.com/drive/u/0/folders/17vWfjwZeEOPxWqa9VSNjmD7sSQetCPZq")
+drive_p2 <- googledrive::as_id("https://drive.google.com/drive/u/0/folders/1QmJTnbayKJYLc_FMi4snVMM1AfmaSQAQ")
+drive_p3 <- googledrive::as_id("https://drive.google.com/drive/u/0/folders/1uN-NeF_KtVwvVtR2i3V2RdRjng-vRbLN")
+
+# Upload each block of raw files to its respective Drive folder
+purrr::walk(.x = master_p1, .f = ~ googledrive::drive_upload(
+  path = drive_p1, media = file.path("data", "preprocess-done", .x), overwrite = FALSE))
+
+purrr::walk(.x = master_p2, .f = ~ googledrive::drive_upload(
+  path = drive_p2, media = file.path("data", "preprocess-done", .x), overwrite = FALSE))
+
+purrr::walk(.x = master_p3, .f = ~ googledrive::drive_upload(
+  path = drive_p3, media = file.path("data", "preprocess-done", .x), overwrite = FALSE))
 
 # End ----
