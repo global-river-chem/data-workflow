@@ -10,7 +10,7 @@ source(file = file.path("-setup.r"))
 
 # Load libraries
 ## install.packages("librarian")
-librarian::shelf(tidyverse, googledrive)
+librarian::shelf(tidyverse, googledrive, readxl)
 
 # Clear environment + collect garbage
 rm(list = ls()); gc()
@@ -25,10 +25,10 @@ rm(list = ls()); gc()
 
 # Download it locally
 googledrive::drive_download(file = inv_drive$id, overwrite = TRUE, 
-  path = file.path("data", paste0(inv_drive$name, ".csv")))
+  path = file.path("data", paste0(inv_drive$name, ".xlsx")))
 
 # Read in the inventory
-invent_v01 <- read.csv(file = file.path("data", "data-inventory.csv"))
+invent_v01 <- readxl::read_excel(path = file.path("data", "data-inventory.xlsx"), sheet = "rivers")
 
 # Check structure
 dplyr::glimpse(invent_v01)
@@ -36,9 +36,15 @@ dplyr::glimpse(invent_v01)
 ## ---------------------------------- ##
 # Download Raw Data ----
 ## ---------------------------------- ##
-# Note only raw data with inventory columns for standardization are downloaded
-# Those columns include:
-## TBA
+
+# Identify data in reference table not already in raw data
+missing_local <- invent_v01 %>% 
+  dplyr::filter(raw_filename %in% dir(file.path("data", "00_raw")))
+
+# Check that worked
+sort(unique(missing_local$raw_filename))
+dplyr::glimpse(missing_local)
+
 
 
 
