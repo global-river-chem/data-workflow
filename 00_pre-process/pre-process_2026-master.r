@@ -406,18 +406,28 @@ master_p3 <- master_files[1056:1580]
 supportR::diff_check(old = master_files, new = c(master_p1, master_p2, master_p3))
 
 # Grab links to respective Drive folders
-drive_p1 <- googledrive::as_id("https://drive.google.com/drive/u/0/folders/17vWfjwZeEOPxWqa9VSNjmD7sSQetCPZq")
-drive_p2 <- googledrive::as_id("https://drive.google.com/drive/u/0/folders/1QmJTnbayKJYLc_FMi4snVMM1AfmaSQAQ")
-drive_p3 <- googledrive::as_id("https://drive.google.com/drive/u/0/folders/1uN-NeF_KtVwvVtR2i3V2RdRjng-vRbLN")
+drive.link_p1 <- googledrive::as_id("https://drive.google.com/drive/u/0/folders/17vWfjwZeEOPxWqa9VSNjmD7sSQetCPZq")
+drive.link_p2 <- googledrive::as_id("https://drive.google.com/drive/u/0/folders/1QmJTnbayKJYLc_FMi4snVMM1AfmaSQAQ")
+drive.link_p3 <- googledrive::as_id("https://drive.google.com/drive/u/0/folders/1uN-NeF_KtVwvVtR2i3V2RdRjng-vRbLN")
+
+# Identify files already in drive
+drive_p1 <- googledrive::drive_ls(path = drive.link_p1)
+drive_p2 <- googledrive::drive_ls(path = drive.link_p2)
+drive_p3 <- googledrive::drive_ls(path = drive.link_p3)
+
+# Remove files already in drive
+(master.toupload_p1 <- setdiff(x = master_p1, y = drive_p1$name)) 
+(master.toupload_p2 <- setdiff(x = master_p2, y = drive_p2$name)) 
+(master.toupload_p3 <- setdiff(x = master_p3, y = drive_p3$name)) 
 
 # Upload each block of raw files to its respective Drive folder
-purrr::walk(.x = master_p1, .f = ~ googledrive::drive_upload(
-  path = drive_p1, media = file.path("data", "preprocess-done", .x), overwrite = FALSE))
+purrr::walk(.x = master.toupload_p1, .f = ~ googledrive::drive_upload(
+  path = drive.link_p1, media = file.path("data", "preprocess-done", .x), overwrite = FALSE))
 
-purrr::walk(.x = master_p2, .f = ~ googledrive::drive_upload(
-  path = drive_p2, media = file.path("data", "preprocess-done", .x), overwrite = FALSE))
+purrr::walk(.x = master.toupload_p2, .f = ~ googledrive::drive_upload(
+  path = drive.link_p2, media = file.path("data", "preprocess-done", .x), overwrite = FALSE))
 
-purrr::walk(.x = master_p3, .f = ~ googledrive::drive_upload(
-  path = drive_p3, media = file.path("data", "preprocess-done", .x), overwrite = FALSE))
+purrr::walk(.x = master.toupload_p3, .f = ~ googledrive::drive_upload(
+  path = drive.link_p3, media = file.path("data", "preprocess-done", .x), overwrite = FALSE))
 
 # End ----
