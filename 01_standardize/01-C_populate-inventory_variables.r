@@ -46,9 +46,17 @@ message(length(local_std) - length(needed_std), " fewer files in need of extract
 # Make a list for storing outputs
 var_list <- list()
 
-
 # <`for` loop identifying pre-river, per-variable info here>
 
+# Taken from pre-processing script for master 2026 data, should be perfect with minor adaptations
+# dplyr::group_by(variable) %>% 
+#     dplyr::summarize(
+#       first_year = min(lubridate::year(as.Date(focal_df$date)), na.rm = T),
+#       last_year = max(lubridate::year(as.Date(focal_df$date)), na.rm = T),
+#       .groups = "drop") %>% 
+#     # Also add raw file name
+#     dplyr::mutate(raw_filename = focal_file,
+#       .before = dplyr::everything())
 
 # Unlist to a dataframe
 var_v01 <- purrr::list_rbind(x = var_list)
