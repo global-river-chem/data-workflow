@@ -432,4 +432,16 @@ dplyr::glimpse(chem_spans)
 write.csv(x = chem_spans, na = '', row.names = F,
   file = file.path("data", "master2026_chemistry-spans.csv"))
 
+## ---------------------------------- ##
+# Upload to Drive ----
+## ---------------------------------- ##
+
+# Identify local files
+(master_files <- dir(path = file.path("data", "preprocess-done"), pattern = "master2026_"))
+
+# Upload them all to the relevant Drive folder
+purrr::walk(.x = master_files,
+  .f = ~ googledrive::drive_upload(media = file.path("data", "preprocess-done", .x), overwrite = TRUE,
+    path = googledrive::as_id("https://drive.google.com/drive/u/0/folders/1HvMPjH2WhKopEzQqVEmv2f7xb_PVMyHB")))
+
 # End ----
