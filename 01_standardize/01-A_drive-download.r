@@ -37,15 +37,42 @@ dplyr::glimpse(invent_v01)
 # Download Raw Data ----
 ## ---------------------------------- ##
 
-# Identify data in reference table not already in raw data
+# Compare data in reference table versus already-downloaded raw data
 supportR::diff_check(old = unique(invent_v01$raw_filename),
   new = dir(file.path("data", "00_raw")))
 
+# Pare down inventory to only un-downloaded raw files
+invent_v02 <- invent_v01 %>% 
+  dplyr::filter(!raw_filename %in% dir(file.path("data", "00_raw"))) %>% 
+  dplyr::filter(!is.na(raw_filename))
 
+# Re-check structure
+dplyr::glimpse(invent_v02)
 
+# Iterate across folders of un-downloaded files
+for(focal_folder in unique(invent_v02$data_drive.folder)){
+  # focal_folder <- "https://drive.google.com/drive/u/0/folders/1uN-NeF_KtVwvVtR2i3V2RdRjng-vRbLN"
+  
+  # List files in that folder
+  focal_conts <- googledrive::drive_ls(path = googledrive::as_id(focal_folder))
 
+  # Filter inventory to only this Drive folder's raw files
+  focal_invent <- invent_v02 %>% 
+    dplyr::filter(data_drive.folder == focal_folder)
 
+  # Filter to only data files identified in inventory
+  focal_raw <- focal_conts %>% 
+    dplyr::filter(name %in% focal_invent$raw_filename)
 
+  # Download each of these files!
+  purrr::walk2(.x = focal_raw$id, .y = focal_raw$name,
+    .f = ~ googledrive::drive_download(file = .x, overwrite = TRUE,
+      path = file.path("data", "00_raw", .y)))
+  
+} # Close folder loop
 
+# Confirm that all raw files in inventory have been downloaded
+supportR::diff_check(old = unique(invent_v01$raw_filename),
+  new = dir(file.path("data", "00_raw")))
 
 # End ----
