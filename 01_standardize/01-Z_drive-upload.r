@@ -12,10 +12,22 @@ source(file = file.path("-setup.r"))
 
 # Load libraries
 ## install.packages("librarian")
-librarian::shelf(tidyverse, googledrive)
+librarian::shelf(tidyverse, readxl, googledrive)
 
 # Clear environment + collect garbage
 rm(list = ls()); gc()
+
+## ---------------------------------- ##
+# Identify Drive Destinations ----
+## ---------------------------------- ##
+
+# Read in the inventory
+invent_v01 <- readxl::read_excel(path = file.path("data", "data-inventory.xlsx"), sheet = "rivers")
+
+# Check structure
+dplyr::glimpse(invent_v01)
+
+
 
 ## ---------------------------------- ##
 # Export Standard Files to Drive ----

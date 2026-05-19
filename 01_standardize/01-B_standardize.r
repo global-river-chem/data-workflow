@@ -11,7 +11,7 @@ source(file = file.path("-setup.r"))
 
 # Load libraries
 ## install.packages("librarian")
-librarian::shelf(tidyverse)
+librarian::shelf(tidyverse, readxl)
 
 # Clear environment + collect garbage
 rm(list = ls()); gc()
@@ -21,7 +21,7 @@ rm(list = ls()); gc()
 ## ---------------------------------- ##
 
 # Read in the inventory
-invent_v01 <- read.csv(file = file.path("data", "data-inventory.csv"))
+invent_v01 <- readxl::read_excel(path = file.path("data", "data-inventory.xlsx"), sheet = "rivers")
 
 # Check structure
 dplyr::glimpse(invent_v01)
