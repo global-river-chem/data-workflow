@@ -44,14 +44,14 @@ river_chem_format <- function(river = NULL, date_col = "date", var_col = "variab
         stop("'value_col' must exactly match one column name in data passed to 'river' argument")
    
     # Grab each part of the data
-    river_date <- dplyr::select(.data = river, dplyr::all_of(date_col))
-    river_value <- dplyr::select(.data = river, dplyr::all_of(value_col))
+    river_date <- dplyr::select(.data = river, dplyr::all_of(date_col))[[date_col]]
+    river_value <- dplyr::select(.data = river, dplyr::all_of(value_col))[[value_col]]
     ## Conditionally grab variable/unit per warning text above
     if(var_col %in% names(river)){
-        river_variable <- dplyr::select(.data = river, dplyr::all_of(var_col))
+        river_variable <- dplyr::select(.data = river, dplyr::all_of(var_col))[[var_col]]
     } else { river_variable <- rep(x = var_col, times = nrow(river)) }
     if(unit_col %in% names(river)){
-        river_unit <- dplyr::select(.data = river, dplyr::all_of(unit_col))
+        river_unit <- dplyr::select(.data = river, dplyr::all_of(unit_col))[[unit_col]]
     } else { river_unit <- rep(x = unit_col, times = nrow(river)) }
 
     # Assemble into table of desired format
