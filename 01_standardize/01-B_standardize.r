@@ -6,6 +6,9 @@
 # Note this is done on a per-river basis so will create as many standard files as there were raw files
 ## This is _many_ files so expect the per-river operation to be quick but the total operation to be time-consuming
 
+# This script has one section per data structure in the raw data
+# That way we can loop across data with the same structure and transform them all into the globally-standardized format
+
 # Get set up
 source(file = file.path("-setup.r"))
 
@@ -45,7 +48,7 @@ dplyr::glimpse(invent_v02)
 # Assemble standardize filenames from relevant columns of inventory
 invent_v03 <- invent_v02 %>% 
   dplyr::mutate(dplyr::across(.cols = dplyr::all_of(c("network_site", "country", "waterbody", "point_id")),
-    .f = ~ tolower(gsub(pattern = " ", replacement = "-", x = .)))) %>% 
+    .f = ~ tolower(gsub(pattern = " |_", replacement = "-", x = .)))) %>% 
   dplyr::mutate(std_filename = paste0(network_site, "_", country, "_", waterbody, "_", point_id, ".csv"),
     .before = incl_discharge)
 
@@ -64,7 +67,7 @@ if(nrow(invent_v03) != length(unique(invent_v03$std_filename))){
 }
 
 ## ---------------------------------- ##
-# Standardize Raw Data ----
+# Final Pre-Flight Checks ----
 ## ---------------------------------- ##
 
 # Identify local raw data
@@ -73,26 +76,41 @@ raw_v01 <- dir(path = file.path("data", "00_raw"))
 # Pare that down to only raw files with standard names
 (raw_v02 <- intersect(x = raw_v01, y = unique(invent_v03$raw_filename)))
 
+## ---------------------------------- ##
+# Standardize 'Master 2026' Data ----
+## ---------------------------------- ##
+
+# Pare the inventory down to just data from this source/with this structure
+focal_invent <- invent_v03 %>% 
+  dplyr::filter(data_repository == "From 2026 \"master\" harmonized files")
+
+# Pare raw files down to just those as well
+(focal_raw <- intersect(x = raw_v02, y = unique(focal_invent$raw_filename)))
+
 # Loop across raw data files, performing standardization as we go
-for(focal_point in raw_v02){
-  # focal_point <- "master2026_chemistry-river-10_Xibeco.csv"
+for(focal_data in focal_raw){
+  # focal_data <- "master2026_chemistry-river-10_Xibeco.csv"
 
   # Read in the data
-  focal_raw <- read.csv(file = file.path("data", "00_raw", focal_point))
+  river_raw <- read.csv(file = file.path("data", "00_raw", focal_data))
 
   # Grab relevant row of inventory
-  focal_invent <- dplyr::filter(invent_v03, raw_filename == focal_point)
+  river_invent <- dplyr::filter(focal_invent, raw_filename == focal_data)
 
   # Progress message
-  message("Standardizing ", focal_invent$std_filename)
+  message("Standardizing ", river_invent$std_filename)
 
   # Wrangle to desired information in desired format
-  focal_std <- river_chem_format(river = focal_raw, date_col = "date",
+  river_std <- river_chem_format(river = river_raw, date_col = "date",
     var_col = "variable", unit_col = "units", value_col = "value")
 
   # Export
-  write.csv(x = focal_std, row.names = FALSE, na = '',
-    file = file.path("data", "01_standard", focal_invent$std_filename))
+  write.csv(x = river_std, row.names = FALSE, na = '',
+    file = file.path("data", "01_standard", river_invent$std_filename))
 }
+
+# Tidy up environment
+rm(list = c("focal_invent", "focal_raw", "focal_data", 
+  "river_raw", "river_invent", "river_std")); gc()
 
 # End ----
