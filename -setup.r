@@ -16,7 +16,6 @@ dir.create(file.path("data"), showWarnings = F)
 dir.create(file.path("data", "00_raw"), showWarnings = F)
 dir.create(file.path("data", "01_standard"), showWarnings = F)
 dir.create(file.path("data", "wrtds"), showWarnings = F)
-dir.create(file.path("data", "spatial"), showWarnings = F)
 
 # Clear environment + collect garbage
 rm(list = ls()); gc()

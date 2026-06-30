@@ -1,10 +1,12 @@
 # **Data Workflow**
-This repository contains a workflow covering data ingestion, QAQC, harmonization, WRTDS modeling, and spatial data extractions.  
+This repository contains the chemistry/discharge data workflow: data ingestion, QAQC, harmonization, and WRTDS modeling.
 
 It is a **work in progress** and is actively being developed to make the workflow more streamlined, reproducible, and easier to maintain as data sources and methods evolve.
 
+Spatial data extraction now lives in [spatial-data-workflow](https://github.com/global-river-chem/spatial-data-workflow).
+
 ## **Project Lineage**
-This work builds on the silica working group project originally developed under the NCEAS LTER organization. Earlier versions of the data processing and spatial workflows are preserved in the repositories below and serve as the foundation for the ongoing development in this repository:
+This work builds on the silica working group project originally developed under the NCEAS LTER organization. Earlier data and spatial workflow repos are listed here for context:
 - [LTER GitHub Organization](https://github.com/lter)
     - [lterwg-silica-data](https://github.com/lter/lterwg-silica-data) – original data repository
     - [lterwg-silica-spatial](https://github.com/lter/lterwg-silica-spatial) – original spatial data extraction repository
